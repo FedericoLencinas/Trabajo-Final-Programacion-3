@@ -1,0 +1,26 @@
+## Ignorar carpetas generadas
+[Bb]in/
+[Oo]bj/
+
+## Ignorar paquetes y caché
+*.suo
+*.user
+*.useros
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ncb
+*.opensdf
+*.sdf
+*.cache
+*.exp
+*.lib
+*.pdb
+*.res
+
+## Ignorar archivos de Visual Studio (¡CRUCIAL!)
+.vs/
+
+## Ignorar logs
+logs/

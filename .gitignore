@@ -1,0 +1,9 @@
+# Ignorar la carpeta del Frontend (para subir solo el Backend)
+Frontend/
+
+# Ignorar carpetas comunes de .NET/ASP.NET dentro del Backend
+# (Se ignora en cualquier nivel de subdirectorio)
+[Bb]in/
+[Oo]bj/
+.vs/
+logs/
