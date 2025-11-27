@@ -1,9 +1,10 @@
-# Ignorar la carpeta del Frontend (para subir solo el Backend)
-Frontend/
-
 # Ignorar carpetas comunes de .NET/ASP.NET dentro del Backend
 # (Se ignora en cualquier nivel de subdirectorio)
 [Bb]in/
 [Oo]bj/
 .vs/
 logs/
+
+# IGNORAR CARPETAS DE COMPILACIÓN Y DEPENDENCIAS DEL FRONTEND
+Frontend/Cartera-Cripto-Vue/node_modules/
+Frontend/Cartera-Cripto-Vue/dist/
