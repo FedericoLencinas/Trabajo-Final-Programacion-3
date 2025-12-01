@@ -22,6 +22,8 @@ namespace Cartera_Cripto.Controllers
         {
             var transacciones = await _context.Transacciones
                 .Include(t => t.Cliente)
+                // Ordenar por fecha para el historial
+                .OrderByDescending(t => t.datetime)
                 .Select(t => new
                 {
                     t.id,
@@ -74,7 +76,7 @@ namespace Cartera_Cripto.Controllers
                 return BadRequest("Error obteniendo precio desde CriptoYa.");
             }
 
-            transaccion.money = (float)((decimal)transaccion.crypto_amount * precioActual);
+            transaccion.money = transaccion.crypto_amount * precioActual;
             transaccion.datetime = DateTime.Now;
 
             if (transaccion.action.ToLower() == "sale")
@@ -84,7 +86,7 @@ namespace Cartera_Cripto.Controllers
                                 t.crypto_code.ToLower() == transaccion.crypto_code.ToLower())
                     .ToListAsync();
 
-                float saldo = movimientos.Sum(t =>
+                decimal saldo = movimientos.Sum(t =>
                     t.action.ToLower() == "purchase" ? t.crypto_amount : -t.crypto_amount);
 
                 if (transaccion.crypto_amount > saldo)
@@ -111,38 +113,11 @@ namespace Cartera_Cripto.Controllers
                 transaccion.action.ToLower() != "sale")
                 return BadRequest("La acción debe ser 'purchase' o 'sale'.");
 
-            transaccion.ClienteId = existente.ClienteId;
-
-            decimal precioActual;
-            try
-            {
-                precioActual = await ObtenerPrecioActualARS(transaccion.crypto_code);
-            }
-            catch
-            {
-                return BadRequest("Error obteniendo precio desde CriptoYa.");
-            }
-
-            if (transaccion.action.ToLower() == "sale")
-            {
-                var movimientos = await _context.Transacciones
-                    .Where(t => t.ClienteId == existente.ClienteId &&
-                                t.crypto_code.ToLower() == transaccion.crypto_code.ToLower() &&
-                                t.id != id)
-                    .ToListAsync();
-
-                float saldo = movimientos.Sum(t =>
-                    t.action.ToLower() == "purchase" ? t.crypto_amount : -t.crypto_amount);
-
-                if (transaccion.crypto_amount > saldo)
-                    return BadRequest("Saldo insuficiente para realizar la venta.");
-            }
-
             existente.crypto_code = transaccion.crypto_code;
             existente.action = transaccion.action;
             existente.crypto_amount = transaccion.crypto_amount;
-            existente.money = (float)((decimal)transaccion.crypto_amount * precioActual);
-            existente.datetime = DateTime.Now;
+            existente.money = transaccion.money; 
+            existente.datetime = transaccion.datetime; 
 
             await _context.SaveChangesAsync();
 
@@ -167,7 +142,7 @@ namespace Cartera_Cripto.Controllers
         {
             using var httpClient = new HttpClient();
 
-            string url = $"https://criptoya.com/api/{cryptoCode.ToLower()}/ars";
+            string url = $"https://criptoya.com/api/satoshitango/{cryptoCode.ToLower()}/ars/1";
             var response = await httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 

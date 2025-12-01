@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 
+
 namespace Cartera_Cripto.Controllers
 {
     [Route("api/[controller]")]
@@ -18,7 +19,7 @@ namespace Cartera_Cripto.Controllers
             _context = context;
         }
 
-        // GET api/cliente
+        // GET api/cliente 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Cliente>>> Get()
         {
@@ -60,7 +61,6 @@ namespace Cartera_Cripto.Controllers
                 return BadRequest(new { message = "El email ya está registrado." });
 
             cliente.id = 0;
-
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
 
@@ -83,6 +83,7 @@ namespace Cartera_Cripto.Controllers
             if (cliente == null)
                 return Unauthorized(new { message = "Email o contraseña incorrectos" });
 
+            // Autenticación exitosa
             cliente.password = null;
             return Ok(cliente);
         }
@@ -114,5 +115,21 @@ namespace Cartera_Cripto.Controllers
             cliente.password = null;
             return Ok(cliente);
         }
+
+        // DELETE api/cliente/{id} 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var cliente = await _context.Clientes.FindAsync(id);
+
+            if (cliente == null)
+                return NotFound("Cliente no encontrado.");
+
+            _context.Clientes.Remove(cliente);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
     }
 }
