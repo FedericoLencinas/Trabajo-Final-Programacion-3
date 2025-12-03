@@ -21,8 +21,6 @@ namespace Cartera_Cripto.Controllers
         public async Task<ActionResult> Get()
         {
             var transacciones = await _context.Transacciones
-                .Include(t => t.Cliente)
-                // Ordenar por fecha para el historial
                 .OrderByDescending(t => t.datetime)
                 .Select(t => new
                 {
@@ -31,8 +29,8 @@ namespace Cartera_Cripto.Controllers
                     t.crypto_code,
                     t.ClienteId,
                     cliente_nombre = t.Cliente != null ? t.Cliente.name : "",
-                    t.crypto_amount,
-                    t.money,
+                    crypto_amount = (double)t.crypto_amount,
+                    money = (double)t.money,
                     t.datetime
                 })
                 .ToListAsync();
@@ -53,6 +51,48 @@ namespace Cartera_Cripto.Controllers
             return Ok(transaccion);
         }
 
+        [HttpGet("historial/{clienteId}")]
+        public async Task<ActionResult> GetHistorialByClienteId(int clienteId)
+        {
+            if (clienteId <= 0)
+            {
+                return BadRequest(new { message = "ID de cliente inválido." });
+            }
+
+            try
+            {
+                var transacciones = await _context.Transacciones
+                    .Where(t => t.ClienteId == clienteId)
+                    .OrderByDescending(t => t.datetime)
+                    .Select(t => new
+                    {
+                        t.id,
+                        t.action,
+                        t.crypto_code,
+                        t.ClienteId,
+                        crypto_amount = (double)t.crypto_amount,
+                        money = (double)t.money,
+                        t.datetime
+                    })
+                    .ToListAsync();
+
+                if (!transacciones.Any())
+                {
+                    return NotFound(new { message = $"No se encontraron transacciones para el cliente ID {clienteId}." });
+                }
+
+                return Ok(transacciones);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error interno en la base de datos al buscar historial.",
+                    detail = ex.Message
+                });
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Transaccion transaccion)
         {
@@ -66,7 +106,7 @@ namespace Cartera_Cripto.Controllers
                 transaccion.action.ToLower() != "sale")
                 return BadRequest("La acción debe ser 'purchase' o 'sale'.");
 
-            decimal precioActual;
+            double precioActual;
             try
             {
                 precioActual = await ObtenerPrecioActualARS(transaccion.crypto_code);
@@ -83,10 +123,10 @@ namespace Cartera_Cripto.Controllers
             {
                 var movimientos = await _context.Transacciones
                     .Where(t => t.ClienteId == transaccion.ClienteId &&
-                                t.crypto_code.ToLower() == transaccion.crypto_code.ToLower())
+                                 t.crypto_code.ToLower() == transaccion.crypto_code.ToLower())
                     .ToListAsync();
 
-                decimal saldo = movimientos.Sum(t =>
+                double saldo = movimientos.Sum(t =>
                     t.action.ToLower() == "purchase" ? t.crypto_amount : -t.crypto_amount);
 
                 if (transaccion.crypto_amount > saldo)
@@ -116,8 +156,8 @@ namespace Cartera_Cripto.Controllers
             existente.crypto_code = transaccion.crypto_code;
             existente.action = transaccion.action;
             existente.crypto_amount = transaccion.crypto_amount;
-            existente.money = transaccion.money; 
-            existente.datetime = transaccion.datetime; 
+            existente.money = transaccion.money;
+            existente.datetime = transaccion.datetime;
 
             await _context.SaveChangesAsync();
 
@@ -138,25 +178,28 @@ namespace Cartera_Cripto.Controllers
             return NoContent();
         }
 
-        private async Task<decimal> ObtenerPrecioActualARS(string cryptoCode)
+        private async Task<double> ObtenerPrecioActualARS(string cryptoCode)
         {
             using var httpClient = new HttpClient();
 
-            string url = $"https://criptoya.com/api/satoshitango/{cryptoCode.ToLower()}/ars/1";
+            string url = $"https://criptoya.com/api/{cryptoCode.ToLower()}/ars";
+
             var response = await httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             var jsonString = await response.Content.ReadAsStringAsync();
             using var jsonDoc = JsonDocument.Parse(jsonString);
 
-            if (jsonDoc.RootElement.TryGetProperty("satoshitango", out JsonElement sato) &&
-                sato.TryGetProperty("ask", out JsonElement ask) &&
-                ask.TryGetDecimal(out decimal precio))
+            if (jsonDoc.RootElement.TryGetProperty("satoshitango", out JsonElement sato))
             {
-                return precio;
+                if (sato.TryGetProperty("ask", out JsonElement ask) &&
+                    ask.TryGetDecimal(out decimal precio))
+                {
+                    return (double)precio;
+                }
             }
 
-            throw new Exception("No se pudo obtener precio desde CriptoYa.");
+            throw new Exception($"No se pudo obtener el precio 'ask' de SatoshiTango para {cryptoCode}.");
         }
     }
 }

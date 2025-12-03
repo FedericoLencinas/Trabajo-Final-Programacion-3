@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 
-
 namespace Cartera_Cripto.Controllers
 {
     [Route("api/[controller]")]
@@ -24,12 +23,11 @@ namespace Cartera_Cripto.Controllers
         public async Task<ActionResult<IEnumerable<Cliente>>> Get()
         {
             var clientes = await _context.Clientes.ToListAsync();
-
             clientes.ForEach(c => c.password = null);
             return Ok(clientes);
         }
 
-        // GET api/cliente/{id}
+        // GET api/cliente/{id} 
         [HttpGet("{id}")]
         public async Task<ActionResult<Cliente>> Get(int id)
         {
@@ -42,11 +40,14 @@ namespace Cartera_Cripto.Controllers
             return Ok(cliente);
         }
 
-        // POST api/cliente/register
+        // POST api/cliente/register 
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] Cliente cliente)
         {
+            cliente.email = cliente.email.Trim();
+            cliente.password = cliente.password.Trim();
+
             if (!Validacion.ValidarEmail(cliente.email))
                 return BadRequest(new { message = "El email no es válido." });
 
@@ -72,23 +73,25 @@ namespace Cartera_Cripto.Controllers
             });
         }
 
-        // POST api/cliente/login
+        // POST api/cliente/login 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] Cliente loginCliente)
+        public async Task<IActionResult> Login([FromBody] Models.DTOs.ClienteDto loginCliente)
         {
+            string emailLimpio = loginCliente.email.Trim();
+            string passwordLimpia = loginCliente.password.Trim();
+
             var cliente = await _context.Clientes
-                .FirstOrDefaultAsync(c => c.email == loginCliente.email && c.password == loginCliente.password);
+                .FirstOrDefaultAsync(c => c.email == emailLimpio && c.password == passwordLimpia);
 
             if (cliente == null)
                 return Unauthorized(new { message = "Email o contraseña incorrectos" });
 
-            // Autenticación exitosa
             cliente.password = null;
             return Ok(cliente);
         }
 
-        // PATCH api/cliente/{id}
+        // PATCH api/cliente/{id} 
         [HttpPatch("{id}")]
         public async Task<IActionResult> Patch(int id, [FromBody] Cliente clientePatch)
         {
@@ -108,7 +111,7 @@ namespace Cartera_Cripto.Controllers
             }
 
             if (!string.IsNullOrWhiteSpace(clientePatch.password))
-                cliente.password = clientePatch.password;
+                cliente.password = clientePatch.password.Trim();
 
             await _context.SaveChangesAsync();
 
@@ -130,6 +133,5 @@ namespace Cartera_Cripto.Controllers
 
             return NoContent();
         }
-
     }
 }

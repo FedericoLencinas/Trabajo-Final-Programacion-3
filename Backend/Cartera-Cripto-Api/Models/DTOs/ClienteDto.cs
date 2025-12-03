@@ -2,14 +2,14 @@
 
 namespace Cartera_Cripto.Models.DTOs
 {
-    public class ClienteAuthDto
+    public class ClienteDto
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string email { get; set; }
 
         [Required]
         [StringLength(100, MinimumLength = 6)] 
-        public string Password { get; set; }
+        public string password { get; set; }
     }
 }

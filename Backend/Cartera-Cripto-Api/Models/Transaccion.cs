@@ -16,9 +16,9 @@ namespace Cartera_Cripto.Models
         public string crypto_code { get; set; }
 
         [Required]
-        public decimal crypto_amount { get; set; }
+        public double crypto_amount { get; set; }
 
-        public decimal money { get; set; }
+        public double money { get; set; }
 
         public DateTime datetime { get; set; }
 
