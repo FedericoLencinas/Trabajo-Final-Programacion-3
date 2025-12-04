@@ -41,7 +41,6 @@
               <td class="py-3 px-4 font-mono">{{ formatAmount(t.crypto_amount) }}</td>
               <td class="py-3 px-4 font-mono">{{ formatMoney(t.money) }}</td>
               <td class="py-3 px-4 action-buttons">
-                <button @click="viewTransaction(t.id)" class="btn-action text-blue-600">Ver</button>
                 <button @click="editTransaction(t.id)" class="btn-action text-yellow-600">Editar</button>
                 <button @click="deleteTransaction(t.id)" class="btn-action text-red-600">Borrar</button>
               </td>
@@ -89,12 +88,9 @@ const formatMoney = (amount) => {
 };
 
 const formatAmount = (amount) => {
-    // CORRECCIÓN: Usamos 18 decimales. Esto es el límite de precisión del tipo Number de JavaScript.
-    // Si la cantidad es menor a 1e-18, JavaScript lo tratará como 0.
     const num = Number(amount);
-    const amountStr = num.toFixed(18); 
+    const amountStr = num.toFixed(4); 
     
-    // Eliminar ceros a la derecha innecesarios
     return amountStr.replace(/\.?0+$/, '');
 };
 
@@ -163,11 +159,6 @@ const deleteTransaction = async (id) => {
             window.alert(`No se pudo eliminar la transacción: ${err.response?.data?.message || err.message}`);
         }
     }
-};
-
-// Funciones de navegación (manteniendo tu intención)
-const viewTransaction = (id) => {
-    router.push({ name: 'detalle-transaccion', params: { id: id } });
 };
 
 const editTransaction = (id) => {
@@ -291,21 +282,21 @@ const editTransaction = (id) => {
     padding-top: 25px;
 }
 .btn-menu-principal {
-    background-color: var(--color-card-bg);
-    border: 1px solid var(--color-primary-light);
-    color: var(--color-primary);
-    padding: 12px 20px;
-    border-radius: 8px; 
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      width: 100%;
+ margin-top: 10px;
+ background-color: #2563EB; 
+ color: #FFFFFF;
+ font-weight: 700;
+ padding: 0.75rem 1rem;
+ border: none;
+ border-radius: 0.5rem;
+ box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+ transition: background-color 150ms ease-in-out;
+letter-spacing: 0.025em;
+cursor: pointer;
 }
 .btn-menu-principal:hover {
-    background-color: var(--color-primary-light);
-    color: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: #082470; 
 }
 
 .info-message, .error-message, .empty-message {

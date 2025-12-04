@@ -11,6 +11,9 @@
           <span class="user-name-text">
             ¡Hola, {{ authStore.user?.name || 'Usuario' }}!
           </span>
+          <router-link :to="{ name: 'perfil' }" class="btn-perfil">
+            Mi Perfil
+          </router-link>
           <button @click="handleLogout" class="btn-logout">
             Cerrar Sesión
           </button>
@@ -20,7 +23,6 @@
       <main class="main-content">
         <div class="menu-grid">
           
-          <!--Registrar Transacción-->
           <router-link :to="{ name: 'nuevatransaccion' }" class="card-item card-green">
             <div class="card-icon-wrapper">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus-square"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
@@ -29,13 +31,12 @@
             <p class="card-description">Registre una compra o venta de criptomonedas.</p>
           </router-link>
 
-          <!--Historial de Movimientos-->
           <router-link :to="{ name: 'listatransacciones' }" class="card-item card-blue">
              <div class="card-icon-wrapper">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
             </div>
             <h3 class="card-heading">Historial de Transacciones</h3>
-            <p class="card-description">Consulta todas tus operaciones pasadas (Tabla).</p>
+            <p class="card-description">Consulta todas tus operaciones.</p>
           </router-link>
           
         </div>
@@ -93,10 +94,30 @@ const handleLogout = () => {
     letter-spacing: 0.05em;
 }
 
+.user-info-section {
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+}
+
 .user-name-text {
     font-size: 0.875rem;
     opacity: 0.9;
     font-weight: 600; 
+    padding-right: 10px; 
+}
+
+.btn-perfil {
+    background-color: #3B82F6; 
+    color: white;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none; 
+    transition: background-color 0.15s;
+}
+.btn-perfil:hover {
+    background-color: #2563EB;
 }
 
 .btn-logout {

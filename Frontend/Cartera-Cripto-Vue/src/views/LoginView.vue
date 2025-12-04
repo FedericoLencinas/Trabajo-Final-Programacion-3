@@ -107,7 +107,7 @@ const handleLogin = async () => {
 .title-app {
  font-size: 3rem;
  font-weight: 800;
- color: #1F2937; 
+ color: rgb(109, 122, 139); 
  letter-spacing: -0.025em;
 }
 

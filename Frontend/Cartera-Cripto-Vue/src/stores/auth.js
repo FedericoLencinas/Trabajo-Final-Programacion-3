@@ -16,7 +16,6 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    // INICIO DE SESIÓN (POST /api/Cliente/login)
     async login(email, password) {
       this.loading = true;
       this.error = null;
@@ -38,12 +37,11 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // CERRAR SESIÓN
     logout() {
       this.user = null;
       localStorage.removeItem('user');
     },
-    // REGISTRO (POST /api/Cliente/register)
+    
     async register(name, email, password) {
       this.loading = true;
       this.error = null;

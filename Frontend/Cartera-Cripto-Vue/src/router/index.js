@@ -4,11 +4,12 @@ import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue' 
 import RegisterView from '../views/RegisterView.vue' 
 
-import NuevoClienteView from '@/components/models/cliente/NuevoClienteView.vue'
-import ListaClientesView from '@/components/models/cliente/ListaClientesView.vue'
+import PerfilView from '@/views/cliente/PerfilView.vue'
+import EditarPerfilView from '@/views/cliente/EditarPerfilView.vue'
 
 import NuevaTransaccionView from '@/views/transaccion/NuevaTransaccionView.vue'
 import ListaTransaccionesView from '@/views/transaccion/ListaTransaccionesView.vue'
+import EditarTransaccionView from '@/views/transaccion/EditarTransaccionView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL), 
@@ -39,9 +40,22 @@ const router = createRouter({
         name: 'listatransacciones',
         component: ListaTransaccionesView,
     },
+    {
+      path: '/perfil', 
+      name: 'perfil',
+      component: PerfilView,
+    },
+    {
+      path: '/transaccion/editar/:id', 
+      name: 'editar-transaccion', 
+      component: EditarTransaccionView 
+    },
+    {
+      path : '/perfil/editar',
+      name : 'editar-perfil',
+      component : EditarPerfilView
+    }
 
-    { path: '/clientes/new', name: 'nuevocliente', component: NuevoClienteView },
-    { path: '/clientes/list', name: 'listaclientes', component: ListaClientesView },
   ],
 })
 

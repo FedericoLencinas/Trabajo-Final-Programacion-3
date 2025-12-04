@@ -24,14 +24,14 @@
         </div>
         
         <div class="form-group">
-          <label for="crypto" class="label">Moneda:</label>
+          <label for="crypto" class="label">Criptomoneda:</label>
           <select 
             id="crypto" 
             v-model="transaccion.crypto_code" 
             required 
             class="input-field"
           >
-            <option disabled value="">Cargando monedas...</option>
+            <option disabled value="">Cargando criptomonedas...</option>
             <option 
               v-for="moneda in monedas" 
               :key="moneda.abreviatura" 
