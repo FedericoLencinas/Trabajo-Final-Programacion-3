@@ -93,6 +93,44 @@ namespace Cartera_Cripto.Controllers
             }
         }
 
+        [HttpGet("balance/{clienteId}")]
+        public async Task<ActionResult> GetBalance(int clienteId)
+        {
+            if (clienteId <= 0)
+            {
+                return BadRequest(new { message = "ID de cliente inválido." });
+            }
+
+            try
+            {
+                var saldos = await _context.Transacciones
+                    .Where(t => t.ClienteId == clienteId)
+                    .GroupBy(t => t.crypto_code) 
+                    .Select(g => new
+                    {
+                        crypto_code = g.Key,
+                        balance = g.Sum(t => (double)(t.action.ToLower() == "purchase" ? t.crypto_amount : -t.crypto_amount))
+                    })
+                    .Where(s => s.balance > 0) 
+                    .OrderByDescending(s => s.balance)
+                    .ToListAsync();
+
+                if (!saldos.Any())
+                {
+                    return NotFound(new { message = "No se encontraron saldos para este cliente." });
+                }
+
+                return Ok(saldos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error interno al calcular el balance.",
+                    detail = ex.Message
+                });
+            }
+        }
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Transaccion transaccion)
         {
@@ -145,23 +183,57 @@ namespace Cartera_Cripto.Controllers
             if (id != transaccion.id)
                 return BadRequest("El ID no coincide.");
 
-            var existente = await _context.Transacciones.FindAsync(id);
-            if (existente == null)
+            var clienteExistente = await _context.Clientes.FindAsync(transaccion.ClienteId);
+            if (clienteExistente == null)
+                return NotFound("Cliente no encontrado.");
+
+            var transaccionExistente = await _context.Transacciones.FindAsync(id);
+            if (transaccionExistente == null)
                 return NotFound("La transacción no existe.");
 
             if (transaccion.action.ToLower() != "purchase" &&
                 transaccion.action.ToLower() != "sale")
                 return BadRequest("La acción debe ser 'purchase' o 'sale'.");
 
-            existente.crypto_code = transaccion.crypto_code;
-            existente.action = transaccion.action;
-            existente.crypto_amount = transaccion.crypto_amount;
-            existente.money = transaccion.money;
-            existente.datetime = transaccion.datetime;
+            double precioActual;
+            try
+            {
+                precioActual = await ObtenerPrecioActualARS(transaccion.crypto_code);
+            }
+            catch
+            {
+                return BadRequest("Error obteniendo precio desde CriptoYa.");
+            }
+
+            transaccionExistente.datetime = DateTime.Now;
+            transaccionExistente.money = transaccion.crypto_amount * precioActual;
+
+            if (transaccion.action.ToLower() == "sale")
+            {
+                var saldoTotalMoneda = await _context.Transacciones
+                    .Where(t => t.ClienteId == transaccion.ClienteId &&
+                                t.crypto_code.ToLower() == transaccion.crypto_code.ToLower())
+                    .SumAsync(t => (double)(t.action.ToLower() == "purchase" ? t.crypto_amount : -t.crypto_amount));
+
+                double valorExistente = (transaccionExistente.action.ToLower() == "purchase")
+                                        ? transaccionExistente.crypto_amount
+                                        : -transaccionExistente.crypto_amount;
+
+                double saldoDisponibleNeto = saldoTotalMoneda - valorExistente;
+
+                if (transaccion.crypto_amount > saldoDisponibleNeto)
+                {
+                    return BadRequest($"Saldo insuficiente para realizar la venta de {transaccion.crypto_amount} {transaccion.crypto_code}. Saldo disponible neto: {saldoDisponibleNeto.ToString("N8")}");
+                }
+            }
+
+            transaccionExistente.crypto_code = transaccion.crypto_code;
+            transaccionExistente.action = transaccion.action;
+            transaccionExistente.crypto_amount = transaccion.crypto_amount;
 
             await _context.SaveChangesAsync();
 
-            return Ok(existente);
+            return Ok(transaccionExistente);
         }
 
         [HttpDelete("{id}")]
